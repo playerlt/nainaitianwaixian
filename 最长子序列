@@ -1,0 +1,128 @@
+1.题目:      
+     第一行有一个正整数n，代表学校的人数。
+　　 第二行有n个用空格隔开的数，这些数只能是0或1，其中，0代表一个女生，1代表一个男生。（n小于100000）
+　　 输出格式 Output Format 　　输出一个非负整数。这个数表示在输入数据中最长的一段男女人数相等的子序列长度。
+　　 如果不存在男女人数相等的子序列，请输出0。
+样例输入 Sample Input
+9
+0 1 0 0 0 1 1 0 0
+样例输出 Sample Output
+6
+
+2:我的思路：
+ (1)在循环输入数据的同时，统计数字1出现的次数，记为count。
+（2）当0,1个数相等时，答案就是n/2 。
+ (3)当数字1较少时（数字0少同理,此时count=n-count;count代表0出现的次数），遍历数据，创建一个新数组，数组中的元素代表数字1出现的位置，
+ 比如location[6]=23;表示第6个1出现在数据中的第23位。
+（4）定义函数，开始递归：在第（3）步中，记location[0]=left,location[count-1]=right,即标记1的始末位置。最开始搜索的区间是[0,count-1]
+1>如果始末位置之间的距离即right-left+1(right,left的值是通过location数组得到的)比2*count要小或者等于2*count(2倍1的个数)，
+说明答案就是2*count，因为我们总能在区间[left,right]的外面补充0来满足0,1个数相等
+2>如果始末位置大于n/2，说明答案要求的序列出现在[left,right]里面（因为外面没有数字1了），用类似1>的判断方法判断[1,count-1]和[0,count-2]是否满足题意，
+满足便可以return得到答案
+(用类似1>的方法的意思是，只要新的始末距离比新的2*count[因为2*count不满足，所以现在是2*(count-1)]小于或等于，即为所求答案，
+此时[left,right]外面虽然有其他的1，但是这些1不起作用，因为前一次判断不通过，即0的个数比1多，所以外面的1不起作用。)
+(5)因为这个递归调用时间是随着递归层次的增多呈指数增长，因此这里可以用记忆型递归的方法（用空间换时间）,把每次递归调用的结果保存在数组里，
+下次遇到相同的递归时，直接返回数组值。
+（6）算法的时间复杂度应该是O(n^2)，因为用数组存储递归结果最坏可能存储n^2个。
+
+3.参考代码：
+#include<stdio.h>
+#include<stdlib.h>
+int max(int a, int b)
+{
+	return a > b ? a : b;
+}
+int* str;
+int *location;
+int sum1[20000];
+int sum2[20000];
+int findlongest(int left, int right, int count)	//count=min{boys,girls}
+{
+	if (sum1[left] != -1 && sum2[right] != -1)
+	{
+		return sum1[left];
+	}
+	if (location[right] - location[left] + 1 > 2 * count)
+	{
+		sum1[left] = max(findlongest(left + 1, right, count - 1), findlongest(left, right - 1, count - 1));
+		sum2[right] = sum1[left];
+		return sum1[left];
+	}
+	else {
+		sum1[left] = 2 * count;
+		sum2[right] = 2 * count;
+		return 2 * count;
+	}
+}
+int main()
+{
+	for (int i = 0; i < 20000; ++i)
+	{
+		sum1[i] = -1;
+		sum2[i] = -1;
+	}
+
+	int n = 0;
+	scanf_s("%d", &n);
+	str = (int*)malloc(sizeof(int) * n);
+	int less = 0;
+	for (int i = 0; i < n; ++i)
+	{
+		scanf_s("%d", &str[i]);
+		if (str[i] == 1)
+			++less;
+	}
+	if (n == 1)
+	{
+		printf("0\n");
+		return 0;
+	}
+	if (less > n / 2)
+	{
+		less = n - less;
+		if (less == 0)
+		{
+			printf("0\n");
+			return 0;
+		}
+		location = (int*)malloc(sizeof(int) * less);;
+		int j = 0;
+		for (int i = 0; i < n; ++i)
+		{
+			if (str[i] == 0)
+				location[j++] = i;
+		}
+	}
+	else
+	{
+		int j = 0;
+		location = (int*)malloc(sizeof(int) * less);;
+		for (int i = 0; i < n; ++i)
+		{
+			if (str[i] == 1)
+				location[j++] = i;
+		}
+	}
+
+	printf("%d", findlongest(0, less - 1, less));
+	free(str);
+	free(location);
+	return 0;
+}
+
+4.借鉴同学的方法：
+（1）思路:
+在记录数据的同时把0记成-1，定义一个变量sum,每记录一个数据，sum更新一次，创建一个数组map，
+将sum以下标的形式（因为sum可能是负数，所以要对sum进行大于等于n的偏移，比如以sum+n为下标）
+存储在map中，当新的map[sum2]等于之前的map[sum1]时（map[sum+n]表示和为sum时，对应的数据的位置），
+说明在区间map[sum1]和map[sum2]之间有满足0,1个数相等的序列（减去n个1，又加了n个1，所以男女相等）,此时比较大小后判断是否更新最大值。
+（2）同学的代码（部分）：
+   mapped[0 + n] = -1;
+	 mapped[sum + n] = 0;
+  for (int i = 1; i < n; i++) {
+	sum = sum + value[i];
+  if (mapped[sum + n] != null)
+		ans = max(ans, i - mapped[sum + n]);
+		else mapped[sum + n] = i;
+}
+算法复杂度应该是O(n)。
