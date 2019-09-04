@@ -1,0 +1,171 @@
+（1）题目：
+
+给出两个 非空 的链表用来表示两个非负的整数。其中，它们各自的位数是按照 逆序 的方式存储的，并且它们的每个节点只能存储 一位 数字。
+
+如果，我们将这两个数相加起来，则会返回一个新的链表来表示它们的和。
+
+您可以假设除了数字 0 之外，这两个数都不会以 0 开头。
+
+示例：
+
+输入：(2 -> 4 -> 3) + (5 -> 6 -> 4)
+输出：7 -> 0 -> 8
+原因：342 + 465 = 807
+
+（2）解法：
+我的做法和用数组存储大数，进行大数加法的做法相同，只不过这里把数组换成了链表。思路很简单，但是我的代码比较繁琐。
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode* addTwoNumbers(ListNode* l1, ListNode* l2) {
+        ListNode* ret=new ListNode(0);
+        ListNode* mark=ret;
+	int carry = 0;
+	ListNode* mark(0);
+	while (l1 && l2)
+	{
+		int m = (l1->val + l2->val+carry)%10;
+		 carry = (l1->val + l2->val+carry) / 10;
+		ret->val = m;
+		if(!(l1->next||l2->next))     //当l1和l2的下一个节点都为空时
+        {
+            if(carry==0)
+            {
+                ret->next=NULL;
+                return mark->next;
+            }
+            else
+            {    ret->next=new ListNode(1);
+             ret->next->val=1;
+            ret->next->next=NULL;
+             return mark->next;
+            }
+        }
+		if (l1->next)
+			l1 = l1->next;
+		else break;
+		if (l2->next)
+			l2 = l2->next;
+		else break;
+        ret->next = new ListNode(0);
+		ret = ret->next;
+	}
+         ret->next = new ListNode(0);
+		ret = ret->next;
+	if ((!l1->next)&&l2->next)    //l1的下一个节点为空，l2的下一个节点不空
+	{
+		while (l2->next)
+		{
+			l2 = l2->next;
+			int m = (l2->val + carry) % 10;
+			carry = (l2->val + carry) / 10;
+            ret->val = m;
+            if(l2->next)
+            {
+			ret->next = new ListNode(0);
+            ret = ret->next;}
+            else
+            {
+                 if(carry==0)
+            {
+                ret->next=NULL;
+                return mark->next;
+            }
+            else
+            {   
+                ret->next=new ListNode(1);
+                 ret->next->val=1;
+            ret->next->next=NULL;
+             return mark->next;
+            }
+            }
+		}
+	}
+	else
+	{
+		while(l1)
+		{
+			int m = (l1->val + carry) % 10;
+			carry = (l1->val + carry) / 10;
+			ret->val = m;
+            if(l1->next)
+            {ret->next = new ListNode(0);
+			ret = ret->next;}
+            else
+            {
+                 if(carry==0)
+            {
+                ret->next=NULL;
+                return mark->next;
+            }
+            else
+            {    
+
+                ret->next=new ListNode(1);
+                 ret->next->val=1;
+            ret->next->next=NULL;
+             return mark->next;
+            }
+            }
+				l1 = l1->next;
+		}
+	}
+        return mark-next;
+}
+};
+
+
+简洁版（java）//这个方法的不同之处是在短链表的末尾自动补0，所以就不用再另外单独处理链表长度不相等的情况了
+public ListNode addTwoNumbers(ListNode l1, ListNode l2) 
+{ 
+ListNode dummyHead = new ListNode(0); 
+ListNode p = l1, q = l2, curr = dummyHead; 
+int carry = 0; 
+while (p != null || q != null) 
+{ 
+int x = (p != null) ? p.val : 0;
+int y = (q != null) ? q.val : 0;
+int sum = carry + x + y;
+carry = sum / 10;
+curr.next = new ListNode(sum % 10); 
+curr = curr.next; 
+if (p != null) 
+p = p.next; 
+if (q != null)
+q = q.next; 
+}
+if (carry > 0)
+{ 
+curr.next = new ListNode(carry); 
+} 
+return dummyHead.next;
+}
+
+作者：LeetCode
+链接：https://leetcode-cn.com/problems/two-sum/solution/liang-shu-xiang-jia-by-leetcode/
+来源：力扣（LeetCode）
+著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
+
+（3）扩展：
+如果链表不是逆序存储数字，而是顺序存储，这个时候求和最直接的想法大概是把顺序转化为逆序，转化的方法如下(C++)：
+ListNode* reverselist(ListNode* node)
+{
+ListNode*pre=NULL;  //前，相当于转化链表后的next
+ListNode*cur=node; 
+ListNode*pnext=NULL; //next,是没有转化之前的next
+while(cur!=NULL)
+{
+pnext=cur->next;  //记录下一个节点
+cur->next=pre;    //让当前节点的next指向前一个节点
+pre=cur;          //更新pre节点
+cur=pnext;
+}
+return pre;
+}
